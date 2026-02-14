@@ -1,9 +1,9 @@
 ---
 title: "Audit Logs"
-description: "How Zunder records, stores, and exposes FHIR AuditEvent logs."
+description: "How Ferrum records, stores, and exposes FHIR AuditEvent logs."
 ---
 
-Zunder records an **authoritative audit trail** of security-relevant activity performed through
+Ferrum records an **authoritative audit trail** of security-relevant activity performed through
 the FHIR API, modeled as FHIR [`AuditEvent`](https://hl7.org/fhir/auditevent.html) resources.
 
 <Warning>
@@ -24,7 +24,7 @@ the FHIR API, modeled as FHIR [`AuditEvent`](https://hl7.org/fhir/auditevent.htm
 
 ## What gets audited
 
-Zunder audits **FHIR REST interactions** under `/fhir` including (when enabled):
+Ferrum audits **FHIR REST interactions** under `/fhir` including (when enabled):
 
 - `read`, `vread`, `history`
 - `search`
@@ -40,7 +40,7 @@ Zunder audits **FHIR REST interactions** under `/fhir` including (when enabled):
 
 ## Captured security context (SMART / OAuth2)
 
-When requests are authenticated, Zunder binds the audit record to the SMART security context:
+When requests are authenticated, Ferrum binds the audit record to the SMART security context:
 
 - `client_id` (OAuth2 client)
 - `user_id` (end-user subject when present)
@@ -51,7 +51,7 @@ This context is stored both as indexed columns (for fast filtering) and inside t
 
 ## Captured data access semantics
 
-For each interaction, Zunder captures (best-effort):
+For each interaction, Ferrum captures (best-effort):
 
 - **Target resource**: `resource_type` + `resource_id` when known
 - **Patient subject**: `patient_id` when resolvable
@@ -64,14 +64,14 @@ For each interaction, Zunder captures (best-effort):
 ### Search events and `entity.query`
 
 FHIR recommends that servers capture search activity as an **Execute** event and include the raw
-HTTP request as base64 in `AuditEvent.entity.query`. Zunder can do this for search requests:
+HTTP request as base64 in `AuditEvent.entity.query`. Ferrum can do this for search requests:
 
 - Stores the full HTTP start line + headers + body as base64binary
 - Also records the “harmonized” request URL string (path + query) in `details`
 
 ### OperationOutcome capture
 
-On failures, Zunder can capture the returned `OperationOutcome` and include it in the serialized
+On failures, Ferrum can capture the returned `OperationOutcome` and include it in the serialized
 AuditEvent (contained + linked from `entity.what`).
 
 ## Patient resolution
@@ -84,7 +84,7 @@ When possible, audit records include the patient subject:
 - For successful searches: by inspecting a `searchset` Bundle and extracting referenced patients
 
 <Note>
-  For searches that touch multiple patients, Zunder can emit **one audit record per patient** to
+  For searches that touch multiple patients, Ferrum can emit **one audit record per patient** to
   improve privacy segmentation. This is configurable.
 </Note>
 
@@ -101,7 +101,7 @@ with triggers to prevent modification.
 
 ## Admin API
 
-Audit logs are intentionally not accessible via the normal FHIR resource API. Instead, Zunder
+Audit logs are intentionally not accessible via the normal FHIR resource API. Instead, Ferrum
 exposes an internal admin interface (behind admin auth middleware).
 
 ### List audit events

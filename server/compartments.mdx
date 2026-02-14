@@ -18,7 +18,7 @@ description: "Scope queries to a compartment like Patient or Encounter."
 
 ## Endpoints
 
-Zunder supports the standard FHIR compartment search endpoints:
+Ferrum supports the standard FHIR compartment search endpoints:
 
 |             Scope | GET                                       | POST                                              | Notes                        |
 | ----------------: | ----------------------------------------- | ------------------------------------------------- | ---------------------------- |
@@ -60,7 +60,7 @@ Resources belong to a compartment when they reference the compartment resource t
 
 ### CompartmentDefinition Resources
 
-Zunder uses `CompartmentDefinition` resources to define compartment membership rules. When you create or update a CompartmentDefinition, the server automatically:
+Ferrum uses `CompartmentDefinition` resources to define compartment membership rules. When you create or update a CompartmentDefinition, the server automatically:
 
 1. Parses the compartment type (e.g., "Patient", "Encounter")
 2. Extracts resource membership rules from the `resource[]` array
@@ -121,7 +121,7 @@ This means an Account is only in the Patient compartment during its `period` dat
 
 ## Database Schema
 
-Zunder stores compartment membership rules in the `compartment_memberships` table:
+Ferrum stores compartment membership rules in the `compartment_memberships` table:
 
 ```sql
 CREATE TABLE compartment_memberships (
@@ -214,7 +214,7 @@ curl -X POST "http://localhost:8080/fhir/CompartmentDefinition" \
 
 ### Updating Compartment Rules
 
-When you update a CompartmentDefinition, Zunder automatically:
+When you update a CompartmentDefinition, Ferrum automatically:
 
 1. Clears existing membership rules for that compartment type
 2. Rebuilds the rules from the updated definition
@@ -243,7 +243,7 @@ curl -X PUT "http://localhost:8080/fhir/CompartmentDefinition/encounter" \
 
 ### Deleting CompartmentDefinitions
 
-Per FHIR spec, servers may continue using compartment definitions even after deletion. Zunder keeps the membership rules unless explicitly replaced:
+Per FHIR spec, servers may continue using compartment definitions even after deletion. Ferrum keeps the membership rules unless explicitly replaced:
 
 ```bash
 # This deletes the CompartmentDefinition resource but keeps the compartment functional
@@ -265,14 +265,14 @@ fhir:
 
 ## Performance Considerations
 
-- **Indexing**: Zunder uses GIN indexes on `parameter_names` for efficient membership queries
+- **Indexing**: Ferrum uses GIN indexes on `parameter_names` for efficient membership queries
 - **Caching**: Compartment membership rules are loaded once per search and cached
 - **Query Optimization**: The search engine builds optimized SQL queries with proper JOINs
 - **Resource Types**: Searching specific resource types is more efficient than all-types searches
 
 ## Limitations
 
-- **Compartment Instance Validation**: Zunder does not validate that the compartment resource (e.g., Patient/123) exists
+- **Compartment Instance Validation**: Ferrum does not validate that the compartment resource (e.g., Patient/123) exists
 - **Empty Results**: Non-existent compartment instances return empty search results rather than errors
 - **Temporal Boundaries**: Currently stored but not yet fully implemented in search logic
 

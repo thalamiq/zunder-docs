@@ -19,7 +19,7 @@ description: "FHIR operations (e.g. $validate) at system, type, or instance leve
 
 ## Endpoints
 
-Zunder supports operations at three different levels:
+Ferrum supports operations at three different levels:
 
 |        Level | GET                                   | POST                           | Context                           |
 | -----------: | ------------------------------------- | ------------------------------ | --------------------------------- |
@@ -65,7 +65,7 @@ curl -X POST "http://localhost:8080/fhir/Patient/123/\$everything" \
 
 ## Built-in Operations
 
-Zunder includes several built-in operations:
+Ferrum includes several built-in operations:
 
 ### Package Management Operations
 
@@ -121,7 +121,7 @@ curl -X POST "http://localhost:8080/fhir/ValueSet/\$expand" \
 
 ### Parameter Conversion
 
-For GET requests, Zunder automatically converts query parameters to the appropriate FHIR data types:
+For GET requests, Ferrum automatically converts query parameters to the appropriate FHIR data types:
 
 - **Boolean**: `true`/`false` (case-insensitive) → `valueBoolean`
 - **Integer**: Numeric strings → `valueInteger`
@@ -130,7 +130,7 @@ For GET requests, Zunder automatically converts query parameters to the appropri
 
 ### Parameter Validation
 
-Zunder validates operation parameters against OperationDefinition resources:
+Ferrum validates operation parameters against OperationDefinition resources:
 
 - Required parameters must be present
 - Parameter types must match the definition
@@ -235,7 +235,7 @@ curl -X POST "http://localhost:8080/fhir/\$reindex" \
 
 ### Defining Operations
 
-Custom operations are defined using OperationDefinition resources. When you create an OperationDefinition, Zunder automatically:
+Custom operations are defined using OperationDefinition resources. When you create an OperationDefinition, Ferrum automatically:
 
 1. Registers the operation in the operation registry
 2. Validates the operation context (system/type/instance)

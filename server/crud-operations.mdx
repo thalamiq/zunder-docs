@@ -1,6 +1,6 @@
 ---
 title: "CRUD"
-description: "How Zunder handles create, read, update, patch, and delete operations."
+description: "How Ferrum handles create, read, update, patch, and delete operations."
 ---
 
 ## Implementation Features
@@ -21,7 +21,7 @@ description: "How Zunder handles create, read, update, patch, and delete operati
 
 ## Conditional References (Search URIs)
 
-Zunder supports **conditional references** inside request resources by allowing a search URI in
+Ferrum supports **conditional references** inside request resources by allowing a search URI in
 `Reference.reference` (FHIR “search URIs”):
 
 ```json
@@ -32,7 +32,7 @@ Zunder supports **conditional references** inside request resources by allowing 
 
 **Behavior**:
 
-- **1 match**: Zunder rewrites the reference to `Patient/{id}` and persists the rewritten form.
+- **1 match**: Ferrum rewrites the reference to `Patient/{id}` and persists the rewritten form.
 - **0 matches** or **2+ matches**: request fails with `412 Precondition Failed` and **no write occurs**.
 - Only **filter** search parameters are allowed (e.g. `_count`, `_sort`, `_include`, `_revinclude`,
   `_elements`, `_summary` are rejected).
@@ -47,7 +47,7 @@ processing (`batch` / `transaction`).
 
 ### Server-Assigned IDs
 
-When creating with `POST`, Zunder generates UUIDs as resource IDs:
+When creating with `POST`, Ferrum generates UUIDs as resource IDs:
 
 ```bash
 curl -X POST http://localhost:8080/fhir/Patient \
@@ -87,7 +87,7 @@ curl -X PUT http://localhost:8080/fhir/Patient/my-custom-id \
 
 ### Basic Checks on Create
 
-By default, Zunder performs basic structural checks on creates:
+By default, Ferrum performs basic structural checks on creates:
 
 1. **Resource Type**: Validates that `resourceType` matches the endpoint
 2. **Resource Type Name**: Ensures the resource type is a known FHIR resource type
@@ -99,7 +99,7 @@ By default, Zunder performs basic structural checks on creates:
 
 ### Conditional Create
 
-Zunder's conditional create follows FHIR spec:
+Ferrum's conditional create follows FHIR spec:
 
 ```bash
 curl -X POST "http://localhost:8080/fhir/Patient" \
@@ -207,7 +207,7 @@ curl -I http://localhost:8080/fhir/Patient/123
 
 ### Version Tracking
 
-Zunder uses **sequential integer versions** starting at 1:
+Ferrum uses **sequential integer versions** starting at 1:
 
 ```jsonc
 {
@@ -250,12 +250,12 @@ curl -X PUT http://localhost:8080/fhir/Patient/123 \
 
 Without `If-Match`:
 
-- Zunder accepts the update (no concurrency protection)
+- Ferrum accepts the update (no concurrency protection)
 - Last write wins (can lose concurrent changes)
 
 With `If-Match`:
 
-- Zunder rejects if version doesn't match → `412 Precondition Failed`
+- Ferrum rejects if version doesn't match → `412 Precondition Failed`
 - Client must refetch, merge changes, and retry
 
 ### Conditional Update
@@ -279,7 +279,7 @@ curl -X PUT "http://localhost:8080/fhir/Patient?identifier=http://hospital.examp
 - **2+ matches**: Rejects as ambiguous → `412 Precondition Failed`
 
 <Warning>
-  **Conditional Update + Multiple Matches**: Unlike some servers, Zunder never
+  **Conditional Update + Multiple Matches**: Unlike some servers, Ferrum never
   updates multiple resources in a single request. This prevents accidental mass
   updates.
 </Warning>
@@ -291,7 +291,7 @@ curl -X PUT "http://localhost:8080/fhir/Patient?identifier=http://hospital.examp
 
 ### JSON Patch Support
 
-Zunder supports JSON Patch (RFC 6902) format:
+Ferrum supports JSON Patch (RFC 6902) format:
 
 ```bash
 curl -X PATCH http://localhost:8080/fhir/Patient/123 \
@@ -306,7 +306,7 @@ curl -X PATCH http://localhost:8080/fhir/Patient/123 \
 
 ### Narrative Handling
 
-Zunder automatically **removes `text` (narrative)** after applying patches:
+Ferrum automatically **removes `text` (narrative)** after applying patches:
 
 ```jsonc
 // Before patch
@@ -326,13 +326,13 @@ Zunder automatically **removes `text` (narrative)** after applying patches:
 
 <Note>
   **Why?** Narrative is auto-generated HTML that describes the resource. After a
-  patch, the narrative no longer matches the data, so Zunder removes it to prevent
+  patch, the narrative no longer matches the data, so Ferrum removes it to prevent
   confusion.
 </Note>
 
 ### Patch Result Checks
 
-After applying patch operations, Zunder performs basic structural checks:
+After applying patch operations, Ferrum performs basic structural checks:
 
 - Patched resource must remain a valid JSON object
 - Resource type and ID are preserved (cannot be changed via patch)
@@ -370,7 +370,7 @@ Same matching rules as conditional update (requires exactly 1 match).
 
 ### Soft Delete (Default)
 
-Zunder uses **soft delete** by default (`hard_delete: false`):
+Ferrum uses **soft delete** by default (`hard_delete: false`):
 
 - Resource marked as deleted in database
 - History preserved and accessible
@@ -449,7 +449,7 @@ curl -i -X DELETE "http://localhost:8080/fhir/Patient?identifier=http://hospital
 
 ### Indexing
 
-Zunder automatically indexes:
+Ferrum automatically indexes:
 
 - Resource ID (primary key)
 - Version ID
@@ -504,7 +504,7 @@ All errors return `OperationOutcome` with details:
 
 ### Error Responses
 
-Zunder returns `OperationOutcome` resources for errors with diagnostic information:
+Ferrum returns `OperationOutcome` resources for errors with diagnostic information:
 
 ```bash
 curl -i -X POST http://localhost:8080/fhir/Patient \

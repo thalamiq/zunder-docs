@@ -8,13 +8,13 @@ description: "Process multiple requests with batch or transaction Bundles."
   [https://hl7.org/fhir/http.html#transaction](https://hl7.org/fhir/http.html#transaction)
 </Info>
 
-Zunder supports **FHIR Bundles as multi-request envelopes** when you `POST` a
+Ferrum supports **FHIR Bundles as multi-request envelopes** when you `POST` a
 `Bundle` to the server base endpoint (`POST /fhir`).
 
 - `Bundle.type = batch`: entries are independent (partial success is expected)
 - `Bundle.type = transaction`: atomic (all-or-nothing), with intra-transaction reference rewriting
 
-This page documents **Zunder-specific behavior**, especially the transaction mechanics.
+This page documents **Ferrum-specific behavior**, especially the transaction mechanics.
 
 ## Quick Comparison
 
@@ -44,14 +44,14 @@ The handler accepts:
 - `type: "history"` (replication; not covered here)
 
 <Note>
-  In `Bundle.entry.request.url`, Zunder accepts both relative and absolute URLs (it strips scheme/host
+  In `Bundle.entry.request.url`, Ferrum accepts both relative and absolute URLs (it strips scheme/host
   before parsing). Example: `Patient/123` and `https://example.com/fhir/Patient/123` are treated
   the same.
 </Note>
 
 ## Response Detail Level (`Prefer`)
 
-Zunder supports these response styles for **both batch and transaction**:
+Ferrum supports these response styles for **both batch and transaction**:
 
 - `Prefer: return=minimal` → status/location/etag only
 - `Prefer: return=representation` → include the resource bodies in the response bundle
@@ -61,9 +61,9 @@ Zunder supports these response styles for **both batch and transaction**:
 
 Batch entries are processed **independently** (FHIR “batch” semantics).
 
-### Independence rules Zunder enforces
+### Independence rules Ferrum enforces
 
-Zunder pre-validates and flags non-conformant patterns per entry:
+Ferrum pre-validates and flags non-conformant patterns per entry:
 
 - No reference resolution between entries: if a resource contains `Reference.reference` equal to a
   `fullUrl` of a `POST` entry in the same batch, that entry is rejected.
@@ -81,7 +81,7 @@ represented per entry via `entry.response.status` and an `OperationOutcome`.
 
 ## Transaction Bundles (`type=transaction`)
 
-Transactions are **atomic**: Zunder runs the entire bundle inside a single database transaction.
+Transactions are **atomic**: Ferrum runs the entire bundle inside a single database transaction.
 
 - If every entry succeeds → commit and return `Bundle.type = transaction-response` (HTTP `200`).
 - If any entry fails → rollback and return a normal error response (non-2xx) and **no changes are persisted**.
@@ -93,7 +93,7 @@ Transactions are **atomic**: Zunder runs the entire bundle inside a single datab
 
 ### Processing order (important)
 
-Zunder processes entries in this order (regardless of original order):
+Ferrum processes entries in this order (regardless of original order):
 
 1. `DELETE`
 2. `POST` (create)
@@ -103,14 +103,14 @@ Zunder processes entries in this order (regardless of original order):
 
 This order matches the implementation in `server/src/services/transaction.rs`.
 
-### Constraints Zunder enforces
+### Constraints Ferrum enforces
 
 - No duplicate `fullUrl` values across entries.
 - No identity overlaps for change interactions: you can’t have multiple `DELETE`/`PUT`/`PATCH`
   entries targeting the same `{type}/{id}` inside one transaction (to avoid order-dependent
   outcomes).
 - `GET`/`HEAD` inside a transaction is instance-read only; if the URL has no id (looks like a
-  type-level search), Zunder returns an empty `searchset` bundle entry.
+  type-level search), Ferrum returns an empty `searchset` bundle entry.
 
 ### `fullUrl` mapping and intra-transaction reference rewriting
 
@@ -119,13 +119,13 @@ Transactions support the common FHIR pattern:
 - Create a resource in one entry (`POST`)
 - Reference it from another entry using the first entry’s `fullUrl`
 
-Zunder implements this by building a mapping and rewriting resources **before writing them**:
+Ferrum implements this by building a mapping and rewriting resources **before writing them**:
 
 1. For non-`POST` entries, if `entry.fullUrl` exists and the request URL is an identity
-   (`{type}/{id}`), Zunder maps `fullUrl → "{type}/{id}"`.
-2. For `POST` entries, Zunder **pre-reserves UUID ids** and maps `fullUrl → "{type}/{uuid}"` before
+   (`{type}/{id}`), Ferrum maps `fullUrl → "{type}/{id}"`.
+2. For `POST` entries, Ferrum **pre-reserves UUID ids** and maps `fullUrl → "{type}/{uuid}"` before
    processing entries, so later entries can safely reference the would-be created resources.
-3. Before `POST`/`PUT`/`PATCH`, Zunder rewrites string values inside the resource JSON:
+3. Before `POST`/`PUT`/`PATCH`, Ferrum rewrites string values inside the resource JSON:
    - Exact `fullUrl` matches are replaced (fragment-aware: `urn:...#frag` works).
    - Generic string replacement is also applied (e.g., narrative strings), except under canonical
      element paths.
@@ -137,7 +137,7 @@ Zunder implements this by building a mapping and rewriting resources **before wr
 
 #### Conditional references inside resources
 
-Zunder supports **conditional references** (FHIR “search URIs”) inside request resources:
+Ferrum supports **conditional references** (FHIR “search URIs”) inside request resources:
 
 Example:
 
@@ -149,18 +149,18 @@ Example:
 
 Rules (FHIR-style):
 
-- Zunder searches the target type (`Patient` in the example) using the query string parameters.
+- Ferrum searches the target type (`Patient` in the example) using the query string parameters.
 - If there are **0 matches** or **>1 match**, the interaction fails:
   - `transaction`: the **transaction fails** (and everything rolls back)
   - `batch`: the **entry fails** with `412` (other entries are unaffected)
-- If there is **exactly 1 match**, Zunder replaces the search URI with a normal reference
+- If there is **exactly 1 match**, Ferrum replaces the search URI with a normal reference
   (`Patient/{id}`).
 
 See also: [CRUD Operations → Conditional References](/server/crud-operations#conditional-references-search-uris).
 
 ### Conditional operations inside a transaction
 
-Zunder supports the common conditional patterns and resolves them *within the transaction*, meaning:
+Ferrum supports the common conditional patterns and resolves them *within the transaction*, meaning:
 searches see the effects of earlier writes in the same bundle.
 
 Supported patterns:
@@ -172,20 +172,20 @@ Supported patterns:
 
 ### Concurrency control (`If-Match`, `If-None-Match`)
 
-Zunder enforces version checks where applicable:
+Ferrum enforces version checks where applicable:
 
 - `If-Match: W/"{versionId}"` is validated for `PUT`, `PATCH`, and `DELETE`.
 - Conditional `PUT` supports `If-None-Match: *` semantics (via the conditional update resolver).
 
 ### PATCH in transactions (JSON Patch via `Binary`)
 
-For transaction `PATCH`, Zunder expects the entry’s `resource` to be a `Binary` containing a JSON Patch
+For transaction `PATCH`, Ferrum expects the entry’s `resource` to be a `Binary` containing a JSON Patch
 document:
 
 - `Binary.contentType = "application/json-patch+json"`
 - `Binary.data` = base64-encoded JSON Patch bytes
 
-Security/safety note: after applying the patch, Zunder removes `resource.text` (narrative) because it
+Security/safety note: after applying the patch, Ferrum removes `resource.text` (narrative) because it
 may no longer match the updated data.
 
 Example entry shape (data omitted for brevity):
@@ -203,12 +203,12 @@ Example entry shape (data omitted for brevity):
 
 ### Version-specific references (`resolve-as-version-specific`)
 
-Zunder implements the FHIR extension:
+Ferrum implements the FHIR extension:
 
 `http://hl7.org/fhir/StructureDefinition/resolve-as-version-specific`
 
 If a `Reference` element has this extension and contains a **versionless** local reference
-(`{type}/{id}`), Zunder will (after all writes) rewrite it to a version-specific reference:
+(`{type}/{id}`), Ferrum will (after all writes) rewrite it to a version-specific reference:
 
 `{type}/{id}/_history/{versionId}`
 
@@ -241,7 +241,7 @@ as part of resolution.
 }
 ```
 
-Zunder will rewrite `subject.reference` to `Patient/{uuid}` before inserting the Observation.
+Ferrum will rewrite `subject.reference` to `Patient/{uuid}` before inserting the Observation.
 
 ### Transaction: conditional create (`ifNoneExist`)
 

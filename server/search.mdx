@@ -29,7 +29,7 @@ description: "How to search resources with FHIR search parameters."
 | **Unknown Parameters**         | Lenient       | Ignored by default; strict mode via `Prefer: handling=strict`        |
 | **Composite Parameters**       | Not Supported | Future work                                                          |
 
-## Endpoints Zunder implements
+## Endpoints Ferrum implements
 
 |            Scope | GET                               | POST                                      | Notes                        |
 | ---------------: | --------------------------------- | ----------------------------------------- | ---------------------------- |
@@ -70,13 +70,13 @@ curl -X POST "http://localhost:8080/fhir/Patient/123/Observation/_search" \
 
 <Note>
   POST-based search must use `Content-Type: application/x-www-form-urlencoded`.
-  Zunder merges query string parameters and body parameters into one ordered
+  Ferrum merges query string parameters and body parameters into one ordered
   parameter list.
 </Note>
 
 ## Parameter occurrence semantics (AND/OR)
 
-Zunder preserves parameter occurrences in request order (no lossy map parsing):
+Ferrum preserves parameter occurrences in request order (no lossy map parsing):
 
 - **Repeating a parameter is AND**: `name=John&name=Smith`
 - **Comma-separated values are OR**: `name=John,Smith`
@@ -114,7 +114,7 @@ Most resource parameters follow:
 
 ### Value prefixes
 
-Zunder supports the standard FHIR prefixes when they appear **at the start of the value**.
+Ferrum supports the standard FHIR prefixes when they appear **at the start of the value**.
 
 Applies to: `date`, `number`, `quantity`, and `_lastUpdated`.
 
@@ -137,14 +137,14 @@ Notes:
 
 ### Modifiers
 
-Zunder recognizes and validates a subset of FHIR modifiers. A modifier must:
+Ferrum recognizes and validates a subset of FHIR modifiers. A modifier must:
 
 1. Be valid for the parameter type, and
 2. Be allowed by the underlying `SearchParameter` metadata (when provided)
 
 Common patterns:
 
-|            Modifier | Applies to                        | What it does in Zunder                                         |
+|            Modifier | Applies to                        | What it does in Ferrum                                         |
 | ------------------: | --------------------------------- | ----------------------------------------------------------- | -------- | ------------ |
 |          `:missing` | most indexed parameter types      | existence check (`true` = missing, `false` = present)       |
 |            `:exact` | `string`, `_text`, `_content`     | exact match / phrase search                                 |
@@ -187,7 +187,7 @@ curl "http://localhost:8080/fhir/NamingSystem?value:below=http://example.com/sys
 
 ### Chaining (single-level)
 
-Zunder supports single-level chaining on reference parameters:
+Ferrum supports single-level chaining on reference parameters:
 
 - Basic chaining: `subject.name=peter`
 - Type-restricted chaining: `subject:Patient.name=peter`
@@ -201,7 +201,7 @@ curl "http://localhost:8080/fhir/DiagnosticReport?subject:Patient.birthdate=ge19
 
 ### Reverse chaining (`_has`)
 
-Zunder supports `_has` (reverse chaining) with the form:
+Ferrum supports `_has` (reverse chaining) with the form:
 
 ```text
 _has:{referringResource}:{referringParam}:{filterParam}={value}
@@ -255,7 +255,7 @@ curl "http://localhost:8080/fhir/Observation?value-quantity=ge5|http://unitsofme
 
 ## Unknown or unsupported parameters
 
-By default, Zunder follows the common "lenient" behavior and **ignores unknown/unsupported search
+By default, Ferrum follows the common "lenient" behavior and **ignores unknown/unsupported search
 parameters**.
 
 If you want strict validation, use `Prefer: handling=strict`:
@@ -271,7 +271,7 @@ This returns an error listing the unknown/unsupported parameters for that resour
 
 ### `_include` / `_revinclude`
 
-Zunder supports `_include` and `_revinclude` including:
+Ferrum supports `_include` and `_revinclude` including:
 
 - Wildcards (`*`, `Resource:*`)
 - `:iterate` (depth-limited to prevent infinite recursion)
@@ -295,7 +295,7 @@ curl "http://localhost:8080/fhir/DiagnosticReport?subject=Patient/123&_include=D
 
 ### Membership search: `_in` and `_list`
 
-Zunder supports membership searches (e.g. "resources in Group/List"):
+Ferrum supports membership searches (e.g. "resources in Group/List"):
 
 ```bash
 # Find patients in a Group
@@ -313,7 +313,7 @@ curl "http://localhost:8080/fhir/Patient?_list=List/105"
 
 ### `_filter` (FHIR R5-style expression filter)
 
-Zunder supports `_filter` expressions for type-level search (and for system search when a single
+Ferrum supports `_filter` expressions for type-level search (and for system search when a single
 type is implied).
 
 Operators supported include: `eq`, `ne`, `co`, `sw`, `ew`, `re`, `gt`, `lt`, `ge`, `le`, `sa`,
@@ -334,11 +334,11 @@ curl -G "http://localhost:8080/fhir/Patient" \
 
 ## Pagination (cursor-based)
 
-Zunder uses **keyset/cursor pagination** for stable paging over a changing dataset.
+Ferrum uses **keyset/cursor pagination** for stable paging over a changing dataset.
 
 - Control page size with `_count`
 - Follow `Bundle.link` URLs (`next`, `prev`, `first`, `last`) returned by the server
-- Paging links use Zunder's internal parameters:
+- Paging links use Ferrum's internal parameters:
   - `_cursor`: base64url-encoded `lastUpdated,id`
   - `_cursor_direction`: `next`, `prev`, or `last`
 
@@ -353,7 +353,7 @@ curl "http://localhost:8080/fhir/Patient?_count=10&_cursor=eyJsYXN0VXBkYXRlZCI6I
 ```
 
 <Note>
-  Zunder parses `_offset` but does not use it for paging. Pagination links
+  Ferrum parses `_offset` but does not use it for paging. Pagination links
   will not include `_offset`.
 </Note>
 
@@ -361,7 +361,7 @@ curl "http://localhost:8080/fhir/Patient?_count=10&_cursor=eyJsYXN0VXBkYXRlZCI6I
 
 ### `_total`
 
-Zunder calculates totals when requested via `_total`:
+Ferrum calculates totals when requested via `_total`:
 
 - `_total=accurate`: compute an exact `Bundle.total`
 - `_total=estimate`: allow faster, estimated totals (where possible)
@@ -377,7 +377,7 @@ curl "http://localhost:8080/fhir/Patient?name=Doe&_total=none"
 
 ### `_summary` and `_elements`
 
-Zunder applies `_summary` / `_elements` filtering to `Bundle.entry[].resource`:
+Ferrum applies `_summary` / `_elements` filtering to `Bundle.entry[].resource`:
 
 - `_summary=count` short-circuits fetching resources and returns only the count bundle
 - `_summary` takes precedence over `_elements`
@@ -409,7 +409,7 @@ Search limits are configurable under `fhir.search`:
 
 ## Known gaps
 
-Current limitations in Zunder's search engine:
+Current limitations in Ferrum's search engine:
 
 - Recursive chaining (e.g. `subject.organization.name`) is not supported (single-level only)
 - Composite search parameters are not supported

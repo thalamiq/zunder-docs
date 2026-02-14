@@ -19,7 +19,7 @@ description: "Working with FHIR packages (IGs) and conformance resources."
 
 ## Package Sources
 
-Zunder supports packages from two sources:
+Ferrum supports packages from two sources:
 
 ### 1. Registry Packages
 
@@ -296,7 +296,7 @@ Packages have the following statuses:
 
 ### Duplicate Detection
 
-Zunder automatically detects if a package is already installed:
+Ferrum automatically detects if a package is already installed:
 
 - Same `name` and `version` → Returns existing package ID
 - Different version → Installs as new package
@@ -368,7 +368,7 @@ Resources are installed using FHIR batch operations:
 
 ### Server-Provided Packages
 
-Zunder can include internal packages:
+Ferrum can include internal packages:
 
 - Location: `fhir_packages/` directory (configurable)
 - Format: Standard FHIR package structure
@@ -377,7 +377,7 @@ Zunder can include internal packages:
 Example structure:
 ```
 fhir_packages/
-  zunder.fhir.server#1.0.0/
+  Ferrum.fhir.server#1.0.0/
     package/
       package.json
       StructureDefinition-*.json

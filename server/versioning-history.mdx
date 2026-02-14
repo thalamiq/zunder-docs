@@ -1,6 +1,6 @@
 ---
 title: "Versioning & History"
-description: "How Zunder handles resource versioning, history tracking, and version-aware operations."
+description: "How Ferrum handles resource versioning, history tracking, and version-aware operations."
 ---
 
 ## Implementation Features
@@ -25,7 +25,7 @@ description: "How Zunder handles resource versioning, history tracking, and vers
 
 ### Sequential Integer Versions
 
-Zunder uses **sequential integer versions** starting at 1 for each resource:
+Ferrum uses **sequential integer versions** starting at 1 for each resource:
 
 ```jsonc
 // First version (create)
@@ -65,7 +65,7 @@ Each CRUD operation affects versioning differently:
 
 ### Database Storage
 
-Zunder stores versions in two tables:
+Ferrum stores versions in two tables:
 
 - **`resources`**: All resource versions with metadata
 - **`resource_versions`**: Version counter per resource
@@ -235,7 +235,7 @@ curl "http://localhost:8080/fhir/Patient/123/_history?_count=5&_since=2026-01-11
 
 ### History Entry Methods
 
-Zunder automatically determines the HTTP method for each history entry:
+Ferrum automatically determines the HTTP method for each history entry:
 
 | Version | Condition     | Method   | Notes             |
 | ------- | ------------- | -------- | ----------------- |
@@ -371,7 +371,7 @@ curl -X DELETE http://localhost:8080/fhir/Patient/123/_history
 
 **Spec**: [Bundle.type=history](https://hl7.org/fhir/R4/bundle.html)
 
-Zunder supports history bundle replication for data synchronization:
+Ferrum supports history bundle replication for data synchronization:
 
 ```bash
 curl -X POST http://localhost:8080/fhir \
@@ -402,7 +402,7 @@ curl -X POST http://localhost:8080/fhir \
 
 ### History Bundle Processing
 
-Zunder processes history bundles with these rules:
+Ferrum processes history bundles with these rules:
 
 1. **Sequential Processing**: Entries processed in order (not atomic)
 2. **ID Preservation**: Resource IDs preserved from bundle
@@ -446,7 +446,7 @@ Zunder processes history bundles with these rules:
 
 ### Indexing Strategy
 
-Zunder indexes key version-related columns:
+Ferrum indexes key version-related columns:
 
 ```sql
 -- Primary lookup indexes
@@ -482,7 +482,7 @@ fhir:
 ```
 
 <Note>
-  **Version Cleanup**: When enabled, Zunder automatically removes old versions
+  **Version Cleanup**: When enabled, Ferrum automatically removes old versions
   beyond the configured limit, keeping the most recent versions.
 </Note>
 

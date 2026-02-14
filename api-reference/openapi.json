@@ -1,12 +1,12 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Zunder API",
+    "title": "Ferrum API",
     "description": "FHIR R4 RESTful API implementation. All endpoints are prefixed with `/fhir` and follow the FHIR specification.",
     "version": "1.0.0",
     "contact": {
-      "name": "Zunder",
-      "url": "https://github.com/thalamiq/zunder"
+      "name": "Ferrum",
+      "url": "https://github.com/thalamiq/ferrum"
     },
     "license": {
       "name": "MIT"

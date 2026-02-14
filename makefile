@@ -111,7 +111,7 @@ docker-clean:
 # Docker Build
 docker-build-server:
 	@echo "Building server image from parent directory..."
-	cd .. && docker build -f zunder/docker/server/Dockerfile -t fhir-server:latest .
+	cd .. && docker build -f ferrum/docker/server/Dockerfile -t fhir-server:latest .
 
 docker-build-ui:
 	docker build -f docker/ui/Dockerfile -t fhir-ui:latest .

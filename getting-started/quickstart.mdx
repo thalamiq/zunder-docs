@@ -1,9 +1,9 @@
 ---
 title: "Quickstart"
-description: "Get started with Zunder."
+description: "Get started with Ferrum."
 ---
 
-This guide gets you running **Zunder** locally.
+This guide gets you running **Ferrum** locally.
 
 ## Docker
 
@@ -15,13 +15,13 @@ You can download the latest release bundle and run it with the following command
 curl -fsSL https://get.yourfhir.dev | sh
 ```
 
-This will create a directory called `zunder` in your current working directory.
+This will create a directory called `ferrum` in your current working directory.
 
 When it finishes, three containers will be running:
 
-- `zunder-db`: The PostgreSQL database exposed on port 5432
-- `zunder-server`: The FHIR API exposed on port 8080 (background workers run embedded in the same process)
-- `zunder-ui`: The Admin UI exposed on port 3000
+- `ferrum-db`: The PostgreSQL database exposed on port 5432
+- `ferrum-server`: The FHIR API exposed on port 8080 (background workers run embedded in the same process)
+- `ferrum-ui`: The Admin UI exposed on port 3000
 
 You can access the Admin UI at [http://localhost:3000](http://localhost:3000).
 
@@ -29,7 +29,7 @@ You can access the FHIR API at [http://localhost:8080/fhir](http://localhost:808
 
 ## Working with FHIR Resources
 
-Zunder supports all standard FHIR REST operations. Let's start by creating a patient.
+Ferrum supports all standard FHIR REST operations. Let's start by creating a patient.
 
 ### Create a Resource
 
@@ -123,7 +123,7 @@ The server returns a `204 No Content` response on successful deletion.
 
 ## Configuration
 
-You can configure the FHIR Server by editing the `config.yaml` file in the `zunder` directory.
+You can configure the FHIR Server by editing the `config.yaml` file in the `ferrum` directory.
 
 See the [Configuration](/getting-started/configuration) page for more details.
 

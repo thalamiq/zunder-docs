@@ -1,13 +1,13 @@
 ---
 title: "Referential Integrity"
-description: "How Zunder validates references between FHIR resources on create, update, and delete."
+description: "How Ferrum validates references between FHIR resources on create, update, and delete."
 ---
 
 ## Overview
 
 FHIR resources frequently reference each other. For example, an `Observation` may reference a `Patient` via `Observation.subject`. Referential integrity controls whether the server validates that these references point to resources that actually exist.
 
-Zunder supports two modes:
+Ferrum supports two modes:
 
 | Mode         | Behavior                                                              |
 | ------------ | --------------------------------------------------------------------- |
@@ -34,7 +34,7 @@ FHIR__REFERENTIAL_INTEGRITY__MODE=strict
 
 ### On create and update (strict mode)
 
-When a resource is created or updated, Zunder extracts all references from the resource JSON and validates that each referenced resource exists in the database.
+When a resource is created or updated, Ferrum extracts all references from the resource JSON and validates that each referenced resource exists in the database.
 
 **What is checked:**
 - Relative references (e.g., `Patient/123`, `Observation/abc`)
@@ -62,7 +62,7 @@ If any referenced resource does not exist, the server returns `409 Conflict` wit
 
 ### On delete (strict mode)
 
-Before deleting a resource, Zunder checks whether any other resource references it via the `search_reference` index. If references exist, the delete is blocked with `409 Conflict`:
+Before deleting a resource, Ferrum checks whether any other resource references it via the `search_reference` index. If references exist, the delete is blocked with `409 Conflict`:
 
 ```json
 {
